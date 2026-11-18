@@ -1,0 +1,23 @@
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+// https://script.google.com/macros/library/d/1vjAnyQiXk4PzKqgvm5qcShR2pBHPdlZyLFqHo3ViZ2E4q_ZohJGD9_jX/1
+const TARGET_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+app.all('*', async (req, res) => {
+  try {
+    const response = await fetch(TARGET_URL, {
+      method: req.method,
+      headers: { 'Content-Type': 'application/json' },
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body)
+    });
+    const data = await response.text();
+    res.status(response.status).send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
